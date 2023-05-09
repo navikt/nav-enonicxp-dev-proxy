@@ -1,4 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { ErrorRequestHandler } from 'express';
+import { xpProxy } from "./xpProxy";
 
 const app = express();
 const port = 1337;
@@ -11,10 +15,7 @@ app.get('/internal/isReady', (req, res) => {
     return res.status(200).send('I am ready!');
 });
 
-app.get('*', (req, res) => {
-    console.log(`Hello! ${req.url}`);
-    return res.status(200).send();
-});
+app.get('/:env(dev1|dev2)/_/*', xpProxy);
 
 app.use(((err, req, res, _) => {
     const {path} = req;
@@ -30,6 +31,10 @@ app.use(((err, req, res, _) => {
 
 const server = app.listen(port, () => {
     console.log(`Server starting on port ${port}`);
+
+    if (!process.env.SERVICE_SECRET) {
+        throw Error('SERVICE_SECRET must be defined!');
+    }
 });
 
 const shutdown = () => {
