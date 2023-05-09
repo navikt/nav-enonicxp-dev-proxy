@@ -1,6 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express, { ErrorRequestHandler } from 'express';
 import { xpProxy } from "./xpProxy";
 

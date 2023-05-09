@@ -22,8 +22,6 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
         return res.status(400).send(`${devEnv} is not a valid XP dev environment`);
     }
 
-    const url = `${xpOrigin}${req.url.replace(`/${devEnv}`, '')}`;
-
     return proxy(xpOrigin, {
         proxyReqPathResolver: (req) => {
             const path = req.url.replace(`/${devEnv}`, '');
@@ -33,6 +31,8 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
             return path;
         },
         proxyReqOptDecorator: (proxyReq, srcReq) => {
+            // Remove x-headers which XP will use to detect our proxy and fail to resolve
+            // the called path. We probably don't need to remove all of them, but it doesn't hurt...
             if (proxyReq.headers) {
                 Object.keys(proxyReq.headers).forEach(header => {
                     if (header.startsWith('x-')) {
@@ -43,7 +43,6 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
 
             if (srcReq.headers.secret) {
                 const secret = XP_SECRETS[devEnv];
-
                 if (secret) {
                     proxyReq.headers = { ...proxyReq.headers, secret };
                 } else {
@@ -51,21 +50,8 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
                 }
             }
 
-            console.log(proxyReq.headers)
-
             return proxyReq;
         },
-        proxyErrorHandler: (err, res, next) => {
-            console.log(err, err?.code);
-            next(err);
-        },
-        userResDecorator: (proxyRes, proxyResData) => {
-            console.log(`Res Status: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
-            console.log(`Res Headers: ${JSON.stringify(proxyRes.headers)}`)
-            console.log(`Res Data: ${proxyResData.toString().slice(0, 100)}`);
-            return proxyResData;
-        },
         limit: '10mb',
-        memoizeHost: false,
     })(req, res, next);
 };
