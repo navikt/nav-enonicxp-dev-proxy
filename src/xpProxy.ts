@@ -7,20 +7,22 @@ const XP_ORIGINS: Record<string, string> = {
     dev2: 'https://www-q6.nav.no',
 };
 
-const SECRET_PATH = process.env.NODE_ENV === 'development' ? '.' : '/var/secrets'
+const SECRET_PATH = process.env.NODE_ENV === 'development' ? '.' : '/var/secrets';
 
 const XP_SECRETS: Record<string, string> = (() => ({
     dev1: fs.readFileSync(`${SECRET_PATH}/dev1/SERVICE_SECRET`, { encoding: 'utf-8' }),
     dev2: fs.readFileSync(`${SECRET_PATH}/dev2/SERVICE_SECRET`, { encoding: 'utf-8' }),
 }))();
 
-export const xpProxy: RequestHandler = (req, res, next) => {
+export const xpProxy: RequestHandler = async (req, res, next) => {
     const devEnv = req.params.env;
     const xpOrigin = XP_ORIGINS[devEnv];
 
     if (!xpOrigin) {
         return res.status(400).send(`${devEnv} is not a valid XP dev environment`);
     }
+
+    const url = `${xpOrigin}${req.url.replace(`/${devEnv}`, '')}`;
 
     return proxy(xpOrigin, {
         proxyReqPathResolver: (req) => {
@@ -31,13 +33,14 @@ export const xpProxy: RequestHandler = (req, res, next) => {
             return path;
         },
         proxyReqOptDecorator: (proxyReq, srcReq) => {
+            console.log(`Req: ${JSON.stringify(proxyReq)}`)
             if (srcReq.headers.secret) {
                 const secret = XP_SECRETS[devEnv];
 
                 if (secret) {
                     proxyReq.headers = { ...proxyReq.headers, secret };
                 } else {
-                    console.error(`No secret found for env ${devEnv}!`)
+                    console.error(`No secret found for env ${devEnv}!`);
                 }
             }
 
@@ -48,11 +51,12 @@ export const xpProxy: RequestHandler = (req, res, next) => {
             next(err);
         },
         userResDecorator: (proxyRes, proxyResData) => {
-            console.log(`Status: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
-            console.log(`Headers: ${JSON.stringify(proxyRes.headers)}`)
-            console.log(`Data: ${proxyResData.toString().slice(0, 100)}`);
-            return proxyResData
+            console.log(`Res Status: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
+            console.log(`Res Headers: ${JSON.stringify(proxyRes.headers)}`)
+            console.log(`Res Data: ${proxyResData.toString().slice(0, 100)}`);
+            return proxyResData;
         },
-        limit: '10mb'
+        limit: '10mb',
+        memoizeHost: false,
     })(req, res, next);
 };
