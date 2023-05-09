@@ -33,7 +33,14 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
             return path;
         },
         proxyReqOptDecorator: (proxyReq, srcReq) => {
-            console.log(`Req: ${JSON.stringify(proxyReq)}`)
+            if (proxyReq.headers) {
+                Object.keys(proxyReq.headers).forEach(header => {
+                    if (header.startsWith('x-')) {
+                        delete proxyReq.headers?.[header];
+                    }
+                });
+            }
+
             if (srcReq.headers.secret) {
                 const secret = XP_SECRETS[devEnv];
 
@@ -43,6 +50,8 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
                     console.error(`No secret found for env ${devEnv}!`);
                 }
             }
+
+            console.log(proxyReq.headers)
 
             return proxyReq;
         },
