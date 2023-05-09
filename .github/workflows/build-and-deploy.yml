@@ -1,13 +1,6 @@
 name: Build and deploy
 on:
-  workflow_call:
-    outputs:
-      image:
-        description: "Url to docker image"
-        value: ${{ jobs.build-image.outputs.image }}
-    secrets:
-      NAIS_WORKLOAD_IDENTITY_PROVIDER:
-        required: true
+  workflow_dispatch
 
 jobs:
   build_and_deploy:
@@ -16,8 +9,6 @@ jobs:
       contents: "read"
       id-token: "write"
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.docker-push.outputs.image }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -40,8 +31,7 @@ jobs:
       - name: Deploy to nais
         uses: nais/deploy/actions/deploy@v1
         env:
-          CLUSTER: ${{ inputs.cluster }}
+          CLUSTER: dev-gcp
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           VAR: image=${{ steps.docker-push.outputs.image }}
-          VARS: .nais/vars/vars-${{ inputs.cluster }}.yml
           RESOURCE: .nais/config.yml
