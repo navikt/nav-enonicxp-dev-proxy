@@ -43,5 +43,15 @@ export const xpProxy: RequestHandler = (req, res, next) => {
 
             return proxyReq;
         },
+        proxyErrorHandler: (err, res, next) => {
+            console.log(err, err?.code);
+            next(err);
+        },
+        userResDecorator: (proxyRes, proxyResData) => {
+            console.log(`Data receive: ${proxyResData.toString().slice(0, 100)}`);
+            return proxyResData
+        },
+        memoizeHost: false,
+        limit: '10mb'
     })(req, res, next);
 };
