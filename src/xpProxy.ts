@@ -48,10 +48,11 @@ export const xpProxy: RequestHandler = (req, res, next) => {
             next(err);
         },
         userResDecorator: (proxyRes, proxyResData) => {
-            console.log(`Data receive: ${proxyResData.toString().slice(0, 100)}`);
+            console.log(`Status: ${proxyRes.statusCode} ${proxyRes.statusMessage}`)
+            console.log(`Headers: ${JSON.stringify(proxyRes.headers)}`)
+            console.log(`Data: ${proxyResData.toString().slice(0, 100)}`);
             return proxyResData
         },
-        memoizeHost: false,
         limit: '10mb'
     })(req, res, next);
 };
