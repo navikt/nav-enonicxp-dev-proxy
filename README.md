@@ -1,4 +1,4 @@
-# Proxy til dev-miljøer for Enonic XP i NAV
+# Proxy til dev-miljøer for Enonic XP
 
 Tiltenkt brukt ved frontend-utvikling for å slippe å kjøre hele XP-stacken vår lokalt.  
 
