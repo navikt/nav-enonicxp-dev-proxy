@@ -31,10 +31,6 @@ app.use(((err, req, res, _) => {
 
 const server = app.listen(port, () => {
     console.log(`Server starting on port ${port}`);
-
-    if (!process.env.SERVICE_SECRET) {
-        throw Error('SERVICE_SECRET must be defined!');
-    }
 });
 
 const shutdown = () => {

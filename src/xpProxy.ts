@@ -1,12 +1,18 @@
 import { RequestHandler } from 'express';
 import proxy from 'express-http-proxy';
+import * as fs from 'fs';
 
 const XP_ORIGINS: Record<string, string> = {
     dev1: 'https://www.dev.nav.no',
     dev2: 'https://www-q6.nav.no',
 };
 
-const { SERVICE_SECRET } = process.env;
+const SECRET_PATH = process.env.NODE_ENV === 'development' ? '.' : '/var/secrets'
+
+const XP_SECRETS: Record<string, string> = (() => ({
+    dev1: fs.readFileSync(`${SECRET_PATH}/dev1/SERVICE_SECRET`, { encoding: 'utf-8' }),
+    dev2: fs.readFileSync(`${SECRET_PATH}/dev2/SERVICE_SECRET`, { encoding: 'utf-8' }),
+}))();
 
 export const xpProxy: RequestHandler = (req, res, next) => {
     const devEnv = req.params.env;
@@ -20,13 +26,19 @@ export const xpProxy: RequestHandler = (req, res, next) => {
         proxyReqPathResolver: (req) => {
             const path = req.url.replace(`/${devEnv}`, '');
 
-            console.log(`Proxying ${path} to ${xpOrigin}`)
+            console.log(`Proxying ${path} to ${xpOrigin}`);
 
             return path;
         },
         proxyReqOptDecorator: (proxyReq, srcReq) => {
             if (srcReq.headers.secret) {
-                proxyReq.headers = { ...proxyReq.headers, secret: SERVICE_SECRET };
+                const secret = XP_SECRETS[devEnv];
+
+                if (secret) {
+                    proxyReq.headers = { ...proxyReq.headers, secret };
+                } else {
+                    console.error(`No secret found for env ${devEnv}!`)
+                }
             }
 
             return proxyReq;
