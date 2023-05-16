@@ -23,8 +23,8 @@ spec:
       value: /tmp/npm-cache
   filesFrom:
     {{#each secretFiles as |secretFile|}}
-    - secret: secretFile.secret
-      mountPath: secretFile.mountPath
+    - secret: {{secretFile.secret}}
+      mountPath: {{secretFile.mountPath}}
     {{/each}}
   accessPolicy:
     outbound:
