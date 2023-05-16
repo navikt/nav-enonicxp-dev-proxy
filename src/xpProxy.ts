@@ -10,10 +10,18 @@ const XP_ORIGINS: Record<string, string> = {
 
 const SECRET_PATH = process.env.NODE_ENV === 'development' ? '.' : '/var/secrets';
 
-const XP_SECRETS: Record<string, string> = (() => ({
-    dev1: fs.readFileSync(`${SECRET_PATH}/dev1/SERVICE_SECRET`, { encoding: 'utf-8' }),
-    dev2: fs.readFileSync(`${SECRET_PATH}/dev2/SERVICE_SECRET`, { encoding: 'utf-8' }),
-    prod: fs.readFileSync(`${SECRET_PATH}/prod/SERVICE_SECRET`, { encoding: 'utf-8' }),
+const readSecret = (env: string) => {
+    try {
+        return fs.readFileSync(`${SECRET_PATH}/${env}/SERVICE_SECRET`, { encoding: 'utf-8' })
+    } catch(e) {
+        return null
+    }
+}
+
+const XP_SECRETS: Record<string, string | null> = (() => ({
+    dev1: readSecret('dev1'),
+    dev2: readSecret('dev2'),
+    prod: readSecret('prod'),
 }))();
 
 export const xpProxy: RequestHandler = async (req, res, next) => {
