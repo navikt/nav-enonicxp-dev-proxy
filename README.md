@@ -4,7 +4,7 @@ Tiltenkt brukt ved frontend-utvikling for å slippe å kjøre hele XP-stacken v�
 
 ### Bruk
 
-Krever pålogging på naisdevice eller lignende for tilgang til interne applikasjoner.
+Krever pålogging på naisdevice eller tilsvarende for tilgang til interne applikasjoner.
 
 Erstatt url for XP origin i appen du kjører lokalt med en av disse:
 
