@@ -1,4 +1,4 @@
-# Proxy til dev-miljøer for Enonic XP
+# Proxy til dev/prod miljøer for Enonic XP
 
 Tiltenkt brukt ved frontend-utvikling for å slippe å kjøre hele XP-stacken vår lokalt.  
 
@@ -12,3 +12,4 @@ Erstatt url for XP origin i appen du kjører lokalt med en av disse:
 
 **dev2/q6:** `https://nav-enonicxp-proxy.intern.dev.nav.no/dev2`
 
+**prod:** `https://nav-enonicxp-proxy.intern.nav.no/prod`
