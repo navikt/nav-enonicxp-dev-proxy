@@ -5,6 +5,7 @@ import * as fs from 'fs';
 const XP_ORIGINS: Record<string, string> = {
     dev1: 'https://www.dev.nav.no',
     dev2: 'https://www-q6.nav.no',
+    prod: 'https://www.nav.no'
 };
 
 const SECRET_PATH = process.env.NODE_ENV === 'development' ? '.' : '/var/secrets';
@@ -12,19 +13,20 @@ const SECRET_PATH = process.env.NODE_ENV === 'development' ? '.' : '/var/secrets
 const XP_SECRETS: Record<string, string> = (() => ({
     dev1: fs.readFileSync(`${SECRET_PATH}/dev1/SERVICE_SECRET`, { encoding: 'utf-8' }),
     dev2: fs.readFileSync(`${SECRET_PATH}/dev2/SERVICE_SECRET`, { encoding: 'utf-8' }),
+    prod: fs.readFileSync(`${SECRET_PATH}/prod/SERVICE_SECRET`, { encoding: 'utf-8' }),
 }))();
 
 export const xpProxy: RequestHandler = async (req, res, next) => {
-    const devEnv = req.params.env;
-    const xpOrigin = XP_ORIGINS[devEnv];
+    const xpEnv = req.params.env;
+    const xpOrigin = XP_ORIGINS[xpEnv];
 
     if (!xpOrigin) {
-        return res.status(400).send(`${devEnv} is not a valid XP dev environment`);
+        return res.status(400).send(`${xpEnv} is not a valid XP environment`);
     }
 
     return proxy(xpOrigin, {
         proxyReqPathResolver: (req) => {
-            const path = req.url.replace(`/${devEnv}`, '');
+            const path = req.url.replace(`/${xpEnv}`, '');
 
             console.log(`Proxying ${path} to ${xpOrigin}`);
 
@@ -42,11 +44,11 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
             }
 
             if (srcReq.headers.secret) {
-                const secret = XP_SECRETS[devEnv];
+                const secret = XP_SECRETS[xpEnv];
                 if (secret) {
                     proxyReq.headers = { ...proxyReq.headers, secret };
                 } else {
-                    console.error(`No secret found for env ${devEnv}!`);
+                    console.error(`No secret found for env ${xpEnv}!`);
                 }
             }
 

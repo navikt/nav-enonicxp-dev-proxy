@@ -1,0 +1,6 @@
+externalHosts:
+  - www.nav.no
+ingress: https://nav-enonicxp-proxy.intern.nav.no
+secretFiles:
+  - secret: nav-enonicxp
+    mountPath: /var/secrets/prod

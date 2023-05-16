@@ -1,0 +1,9 @@
+externalHosts:
+  - www.dev.nav.no
+  - www-q6.nav.no
+ingress: https://nav-enonicxp-proxy.intern.dev.nav.no
+secretFiles:
+  - secret: nav-enonicxp-dev1
+    mountPath: /var/secrets/dev1
+  - secret: nav-enonicxp-dev2
+    mountPath: /var/secrets/dev2

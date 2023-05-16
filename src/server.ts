@@ -12,7 +12,7 @@ app.get('/internal/isReady', (req, res) => {
     return res.status(200).send('I am ready!');
 });
 
-app.get('/:env(dev1|dev2)/_/*', xpProxy);
+app.get('/:env(dev1|dev2|prod)/_/*', xpProxy);
 
 app.use(((err, req, res, _) => {
     const {path} = req;
