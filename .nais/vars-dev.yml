@@ -1,6 +1,6 @@
 externalHosts:
-  - www.dev.nav.no
-  - www-q6.nav.no
+  - portal-admin-dev.oera.no
+  - portal-admin-q6.oera.no
 ingress: https://nav-enonicxp-proxy.intern.dev.nav.no
 secretFiles:
   - secret: nav-enonicxp-dev1

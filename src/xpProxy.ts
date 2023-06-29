@@ -3,8 +3,8 @@ import proxy from 'express-http-proxy';
 import * as fs from 'fs';
 
 const XP_ORIGINS: Record<string, string> = {
-    dev1: 'https://www.dev.nav.no',
-    dev2: 'https://www-q6.nav.no',
+    dev1: 'https://portal-admin-dev.oera.no',
+    dev2: 'https://portal-admin-q6.oera.no',
     prod: 'https://www.nav.no'
 };
 
