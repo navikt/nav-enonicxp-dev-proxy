@@ -1,6 +1,9 @@
 name: Build and deploy
 on:
-  workflow_dispatch
+  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   build_image:
@@ -13,11 +16,11 @@ jobs:
       image: ${{ steps.docker-push.outputs.image }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
       - name: Install dependencies
         run: npm ci
@@ -36,12 +39,11 @@ jobs:
     needs: build_image
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Deploy to nais
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: dev-gcp
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           VAR: image=${{ needs.build_image.outputs.image }}
           VARS: .nais/vars-dev.yml
           RESOURCE: .nais/config.yml
@@ -51,13 +53,11 @@ jobs:
     needs: build_image
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Deploy to nais
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: prod-gcp
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           VAR: image=${{ needs.build_image.outputs.image }}
           VARS: .nais/vars-prod.yml
           RESOURCE: .nais/config.yml
-
