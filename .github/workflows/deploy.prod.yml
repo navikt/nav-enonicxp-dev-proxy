@@ -34,7 +34,7 @@ jobs:
 
     release:
         name: Create a new release
-        needs: build-and-deploy
+        needs: deploy_prod
         runs-on: ubuntu-latest
         permissions:
             contents: write
