@@ -14,7 +14,6 @@ jobs:
             environment: prod
             app_origin: 'https://www.nav.no'
         secrets:
-            READER_TOKEN: ${{ secrets.READER_TOKEN }}
             NAIS_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
 
     deploy_prod:
