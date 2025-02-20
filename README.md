@@ -13,3 +13,7 @@ Erstatt url for XP origin i appen du kjører lokalt med en av disse:
 **dev2/q6:** `https://nav-enonicxp-proxy.intern.dev.nav.no/dev2`
 
 **prod:** `https://nav-enonicxp-proxy.intern.nav.no/prod`
+
+
+## Prodsetting
+Lag en PR til main, og merge inn etter godkjenning (En automatisk release vil oppstå ved deploy til main)
