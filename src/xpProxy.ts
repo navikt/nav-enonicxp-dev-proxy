@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import proxy from 'express-http-proxy';
 import * as fs from 'fs';
+import escape from 'escape-html';
 
 const XP_ORIGINS: Record<string, string> = {
     dev1: 'https://www.dev.nav.no',
@@ -29,7 +30,7 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
     const xpOrigin = XP_ORIGINS[xpEnv];
 
     if (!xpOrigin) {
-        return res.status(400).send(`${xpEnv} is not a valid XP environment`);
+        return res.status(400).send(`${escape(xpEnv)} is not a valid XP environment`);
     }
 
     return proxy(xpOrigin, {
