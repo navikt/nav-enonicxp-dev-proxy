@@ -5,18 +5,21 @@ import * as fs from 'fs';
 const XP_ORIGINS: Record<string, string> = {
     dev1: 'https://www.dev.nav.no',
     dev2: 'https://www-q6.nav.no',
-    prod: 'https://www.nav.no'
+    prod: 'https://www.nav.no',
 };
 
-const SECRET_PATH = process.env.NODE_ENV === 'development' ? '.' : '/var/secrets';
+const SECRET_PATH =
+    process.env.NODE_ENV === 'development' ? '.' : '/var/secrets';
 
 const readSecret = (env: string) => {
     try {
-        return fs.readFileSync(`${SECRET_PATH}/${env}/SERVICE_SECRET`, { encoding: 'utf-8' })
-    } catch(e) {
-        return null
+        return fs.readFileSync(`${SECRET_PATH}/${env}/SERVICE_SECRET`, {
+            encoding: 'utf-8',
+        });
+    } catch (e) {
+        return null;
     }
-}
+};
 
 const XP_SECRETS: Record<string, string | null> = (() => ({
     dev1: readSecret('dev1'),
@@ -44,9 +47,11 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
             // Remove x-headers which XP will use to detect our proxy and fail to resolve
             // the called path. We probably don't need to remove all of them, but it doesn't hurt...
             if (proxyReq.headers) {
-                Object.keys(proxyReq.headers).forEach(header => {
+                Object.keys(proxyReq.headers).forEach((header) => {
                     if (header.startsWith('x-')) {
-                        delete proxyReq.headers?.[header];
+                        delete (proxyReq.headers as Record<string, any>)[
+                            header
+                        ];
                     }
                 });
             }
