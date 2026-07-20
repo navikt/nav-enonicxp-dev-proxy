@@ -1,5 +1,5 @@
 import express, { ErrorRequestHandler } from 'express';
-import { xpProxy } from "./xpProxy";
+import { xpProxy } from './xpProxy';
 
 const app = express();
 const port = 1337;
@@ -12,11 +12,11 @@ app.get('/internal/isReady', (req, res) => {
     return res.status(200).send('I am ready!');
 });
 
-app.get('/:env(dev1|dev2|prod)/_/*', xpProxy);
+app.get('/:env/_/*splat', xpProxy);
 
 app.use(((err, req, res, _) => {
-    const {path} = req;
-    const {status, stack} = err;
+    const { path } = req;
+    const { status, stack } = err;
     const msg = stack?.split('\n')[0];
 
     console.log(`Express error on path ${path}: ${status} ${msg}`);
