@@ -27,8 +27,17 @@ const XP_SECRETS: Record<string, string | null> = (() => ({
     prod: readSecret('prod'),
 }))();
 
+const forceAsString = (value: string | string[] | undefined): string => {
+    if (Array.isArray(value)) {
+        return value[0];
+    }
+
+    return value || '';
+};
+
 export const xpProxy: RequestHandler = async (req, res, next) => {
-    const xpEnv = req.params.env;
+    // Express 5 types params as `string | string[]` to account for wildcard segments.
+    const xpEnv = forceAsString(req.params.env);
     const xpOrigin = XP_ORIGINS[xpEnv];
 
     if (!xpOrigin) {
