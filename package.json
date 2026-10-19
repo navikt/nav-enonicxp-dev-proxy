@@ -6,12 +6,7 @@
     "scripts": {
         "build": "rm -fr dist && tsc",
         "start": "node dist/server.js",
-        "dev": "pnpm build && concurrently \"tsc -w\" \"nodemon -w dist dist/server.js\""
-    },
-    "nodemonConfig": {
-        "env": {
-            "NODE_ENV": "development"
-        }
+        "dev": "pnpm build && concurrently \"tsc -w\" \"NODE_ENV=development node --watch --watch-preserve-output dist/server.js\""
     },
     "dependencies": {
         "express": "5.3.0",
@@ -23,7 +18,6 @@
         "@types/node": "26.6.3",
         "concurrently": "10.0.6",
         "eslint": "10.12.0",
-        "nodemon": "3.1.14",
         "prettier": "3.9.10",
         "typescript": "6.0.3"
     }
