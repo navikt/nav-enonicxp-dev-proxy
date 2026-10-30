@@ -1,0 +1,23 @@
+name: Deploy to dev
+on: workflow_dispatch
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    uses: navikt/navno-ci/.github/workflows/node-build.yml@v1
+    with:
+      image-suffix: dev-deploy
+      prune-remove: node_modules
+    secrets: inherit
+
+  deploy:
+    needs: build
+    uses: navikt/navno-ci/.github/workflows/nais-deploy.yml@v1
+    with:
+      cluster: dev-gcp
+      resource: .nais/config.yml
+      vars: .nais/vars-dev.yml
+      var: image=${{ needs.build.outputs.image }}
