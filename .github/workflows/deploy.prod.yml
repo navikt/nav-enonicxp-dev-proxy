@@ -1,0 +1,18 @@
+name: Build and deploy to prod and create a new release
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/build-deploy-prod.yml
+    permissions: { contents: read, id-token: write }
+    secrets: inherit
+
+  release:
+    needs: deploy
+    uses: navikt/navno-ci/.github/workflows/release.yml@v1
+    permissions:
+      contents: write
+    secrets: inherit
