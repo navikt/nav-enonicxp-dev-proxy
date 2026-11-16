@@ -1,12 +1,8 @@
 import { RequestHandler } from 'express';
 import proxy from 'express-http-proxy';
 import * as fs from 'fs';
-
-const XP_ORIGINS: Record<string, string> = {
-    dev1: 'https://www.dev.nav.no',
-    dev2: 'https://www-q6.nav.no',
-    prod: 'https://www.nav.no',
-};
+import { markNetworkError, observeProxyRequest } from './metrics';
+import { isXpEnv, proxyConfig, XP_ORIGINS } from './xpConfig';
 
 const SECRET_PATH =
     process.env.NODE_ENV === 'development' ? '.' : '/var/secrets';
@@ -38,7 +34,9 @@ const forceAsString = (value: string | string[] | undefined): string => {
 export const xpProxy: RequestHandler = async (req, res, next) => {
     // Express 5 types params as `string | string[]` to account for wildcard segments.
     const xpEnv = forceAsString(req.params.env);
-    const xpOrigin = XP_ORIGINS[xpEnv];
+    const xpOrigin = isXpEnv(xpEnv) ? XP_ORIGINS[xpEnv] : undefined;
+
+    observeProxyRequest(xpEnv, res);
 
     if (!xpOrigin) {
         return res.status(400).send(`${xpEnv} is not a valid XP environment`);
@@ -76,6 +74,29 @@ export const xpProxy: RequestHandler = async (req, res, next) => {
 
             return proxyReq;
         },
+        // Same as express-http-proxy's default handler, but marks the request for the metrics first
+        proxyErrorHandler: (err, res, next) => {
+            // The client went away (closing the browser tab, say), which isn't XP's fault and isn't counted
+            if (res.destroyed) {
+                return;
+            }
+
+            markNetworkError(res);
+            console.error(
+                `Could not reach ${xpOrigin}: ${err?.code ?? err?.message}`
+            );
+
+            if (err?.code === 'ECONNRESET') {
+                res.setHeader(
+                    'X-Timeout-Reason',
+                    'express-http-proxy reset the request.'
+                );
+                return res.status(504).send();
+            }
+
+            return next(err);
+        },
         limit: '10mb',
+        timeout: proxyConfig.timeoutMs,
     })(req, res, next);
 };

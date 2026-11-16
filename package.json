@@ -9,9 +9,11 @@
     "scripts": {
         "build": "rm -fr dist && tsc",
         "start": "node dist/server.js",
+        "test": "node --test 'test/**/*.test.mts'",
         "dev": "pnpm build && concurrently \"tsc -w\" \"NODE_ENV=development node --watch --watch-preserve-output dist/server.js\""
     },
     "dependencies": {
+        "@prometheus-io/client": "0.16.1",
         "express": "5.3.0",
         "express-http-proxy": "2.1.2"
     },
