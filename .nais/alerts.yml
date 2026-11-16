@@ -1,0 +1,47 @@
+# Deployed to prod-gcp by deploy.prod.yml. The proxy's traffic is developers working locally, so it comes and goes,
+# and there's no alert on missing traffic: the down alert below covers what that would.
+# No double curly braces in this file, not even in comments: nais deploy templates every resource with Handlebars.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nav-enonicxp-dev-proxy-alerts
+  namespace: navno
+  labels:
+    team: navno
+spec:
+  groups:
+    - name: nav-enonicxp-dev-proxy
+      rules:
+        # "or vector(0)" covers the series not existing at all, e.g. if the deployment is gone
+        - alert: NavEnonicxpDevProxyDown
+          expr: |
+            (sum(kube_deployment_status_replicas_available{namespace="navno", deployment="nav-enonicxp-dev-proxy"}) or vector(0)) == 0
+          for: 5m
+          annotations:
+            summary: nav-enonicxp-dev-proxy has no available pods
+            consequence: Developers can't reach XP through https://nav-enonicxp-proxy.intern.nav.no when running frontends locally.
+            action: Check why the pod isn't ready with kubectl or in Nais Console (crash loop, failing secret mount, image pull), and look at the logs in Loki.
+          labels:
+            namespace: navno
+            severity: warning
+
+        # Only env="prod": this cluster can only reach www.nav.no (accessPolicy), so dev1 and dev2 always fail here.
+        # Network errors mean the proxy got no response from XP at all (refused, reset, or idle for 45s), unlike 5xx which XP sends back itself.
+        # A few errors (> 2.5, since increase() extrapolates) that are also a large share of the traffic, since a single developer's
+        # requests may be all there is. A page load sends many requests at once, so one blip can fail most of them: like in
+        # tilbakemeldinger, errors must also show up in at least two separate 5-minute slots.
+        - alert: NavEnonicxpDevProxyXpUnreachable
+          expr: |
+            sum(increase(nav_enonicxp_dev_proxy_requests_total{env="prod",status="network_error"}[15m])) > 2.5
+            and
+            sum(increase(nav_enonicxp_dev_proxy_requests_total{env="prod",status="network_error"}[15m]))
+              / sum(increase(nav_enonicxp_dev_proxy_requests_total{env="prod"}[15m])) > 0.25
+            and on() count_over_time((sum(increase(nav_enonicxp_dev_proxy_requests_total{env="prod",status="network_error"}[5m])) > 0)[15m:5m]) >= 2
+          for: 5m
+          annotations:
+            summary: nav-enonicxp-dev-proxy can't reach XP on www.nav.no for over a quarter of its requests
+            consequence: Developers proxying to prod get 500 or 504 instead of content.
+            action: Look for "Could not reach" in the logs in Loki, which gives the error code (ECONNRESET is also what a 45s timeout gives). Check that www.nav.no is still in accessPolicy.outbound.external (.nais/vars-prod.yml) and that www.nav.no itself is up.
+          labels:
+            namespace: navno
+            severity: warning
